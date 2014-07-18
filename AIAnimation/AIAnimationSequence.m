@@ -24,8 +24,8 @@
 
 - (void)animate {
     if (_currentAnimationIndex >= _animations.count) {
-        if (self.completionBlock)
-            self.completionBlock(YES);
+        if (self.animationCompletionBlock)
+            self.animationCompletionBlock(YES);
         [self didFinishAnimation];
         return;
     }
@@ -38,15 +38,15 @@
     };
     
     AICompletionBlock completionWrapperBlock = ^(BOOL finished) {
-        if (anim.completionBlock)
-            anim.completionBlock(finished);
+        if (anim.animationCompletionBlock)
+            anim.animationCompletionBlock(finished);
         if (finished) {
             [anim didFinishAnimation];
             [self _startNextAnimation];
         } else {
             [anim didAbortAnimation];
-            if (self.completionBlock)
-                self.completionBlock(NO);
+            if (self.animationCompletionBlock)
+                self.animationCompletionBlock(NO);
             [self didAbortAnimation];
         }
     };

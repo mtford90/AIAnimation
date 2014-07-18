@@ -17,7 +17,7 @@
     AIAnimation* anim = [[AIAnimation alloc] init];
     anim.duration = duration;
     anim.animationBlock = animation;
-    anim.completionBlock = completion;
+    anim.animationCompletionBlock = completion;
     return anim;
 }
 
@@ -27,26 +27,30 @@
     self.easeOut = YES;
     return self;
 }
-- (void)run {
+
+- (void)runWithBlock:(AICompletionBlock) block
+{
     if (_setupBlock)
         _setupBlock();
-    
+
     AIAnimationBlock animationWrapperBlock = ^() {
         [self willStartAnimation];
         if (_animationBlock)
             _animationBlock();
         [self didStartAnimation];
     };
-    
+
     AICompletionBlock completionWrapperBlock = ^(BOOL finished) {
-        if (_completionBlock)
-            _completionBlock(finished);
+        if (_animationCompletionBlock)
+            _animationCompletionBlock(finished);
         if (finished)
             [self didFinishAnimation];
         else
             [self didAbortAnimation];
+        if (block)
+            block(finished);
     };
-    
+
     [UIView animateWithDuration:_duration
                           delay:_delay
                         options:[self options]
@@ -54,8 +58,12 @@
                      completion:completionWrapperBlock];
 }
 
+- (void)run {
+    [self runWithBlock:nil];
+}
+
 - (UIViewAnimationOptions)options {
-    UIViewAnimationOptions options = 0;
+    UIViewAnimationOptions options = (UIViewAnimationOptions) 0;
     if (_easeIn && _easeOut)
         options |= UIViewAnimationOptionCurveEaseInOut;
     else if (_easeIn)
@@ -101,8 +109,18 @@
     copy.beginFromCurrentState = _beginFromCurrentState;
     copy.repeat = _repeat;
     copy.animationBlock = _animationBlock;
-    copy.completionBlock = _completionBlock;
+    copy.animationCompletionBlock = _animationCompletionBlock;
     return copy;
+}
+
+#pragma mark NSOperation
+
+- (void)main {
+    dispatch_semaphore_t sem = dispatch_semaphore_create(0);
+    [self runWithBlock:^(BOOL finished) {
+        dispatch_semaphore_signal(sem);
+    }];
+    dispatch_semaphore_wait(sem, DISPATCH_TIME_FOREVER);
 }
 
 @end

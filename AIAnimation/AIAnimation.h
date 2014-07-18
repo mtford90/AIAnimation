@@ -4,7 +4,7 @@
 #import <UIKit/UIKit.h>
 
 
-@interface AIAnimation : NSObject <NSCopying>
+@interface AIAnimation : NSOperation <NSCopying>
 
 typedef void (^AISetupBlock)();
 typedef void (^AIAnimationBlock)();
@@ -20,7 +20,7 @@ typedef void (^AICompletionBlock)(BOOL finished);
 
 @property (copy, nonatomic) AISetupBlock setupBlock;
 @property (copy, nonatomic) AIAnimationBlock animationBlock;
-@property (copy, nonatomic) AICompletionBlock completionBlock;
+@property (copy, nonatomic) AICompletionBlock animationCompletionBlock;
 
 + (instancetype)animationWithDuration:(NSTimeInterval)duration block:(AIAnimationBlock)animation;
 + (instancetype)animationWithDuration:(NSTimeInterval)duration block:(AIAnimationBlock)animation completion:(AICompletionBlock)completion;
